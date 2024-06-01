@@ -26,12 +26,12 @@ pip install -r requirements.txt
 
 ## Create a .env file:
 ```plaintext
-DISCORD_BOT_TOKEN=your_discord_bot_token
-STARRY_AI_KEY=your_starry_ai_api_key
-EMBED_COLOR=your_embed_color_in_hex
-BOT_NAME=your_bot_name
-GENERATION_STEPS=40
-MAX_IMAGES=5
+DISCORD_BOT_TOKEN="Your Token"
+BOTNAME = "StarryBot"
+EMBED_COLOR = "0x0000FF"
+STARRY_AI_KEY="Your StarryAI API KEY"
+GENERATION_STEPS = 40
+MAX_IMAGES = 2
 ```
 ## Run the bot:
 
