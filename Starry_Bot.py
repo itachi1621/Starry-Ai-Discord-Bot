@@ -25,12 +25,26 @@ PRIMARY_EMBED_COLOR = int(os.getenv("EMBED_COLOR"),16)
 BOT_NAME=os.getenv('BOT_NAME')
 GENERATION_STEPS = os.getenv('GENERATION_STEPS')#im using 40 by default the app uses 50 40 should give good enough results
 MAX_IMAGES = os.getenv('MAX_IMAGES')
-VERSION="1.0.0"
+VERSION="1.0.3"
 
 smile = "\U0001F600"
 frown = "\U0001F641"
 heart = "🩷"
 
+friends = [
+            "rosh007",
+            "Persona Slates",
+            "Switch",
+            "thekwitt",
+            "Ryno matic",
+            "KawaiiWaifu",
+            "Cthylla",
+            "(Not) That Guy¹",
+            "Manda"
+        ]
+friend_string = ""
+for friend in friends:
+    friend_string = friend_string + "\n" + friend + " " + heart
 
 sizes = [
     "square",
@@ -85,6 +99,18 @@ async def on_ready():
     print('-----------')
     await bot.tree.sync()
 
+
+@bot.tree.command(name="myfriends",description="These people inspired my creator to make me ")
+async def myfriends(interaction:discord.Interaction):
+
+    embed = discord.Embed(title="My Friends " + smile, color=PRIMARY_EMBED_COLOR)
+    embed.add_field(name="This is my Name " + heart , value=BOT_NAME, inline=True)
+    embed.add_field(name="Version", value=VERSION, inline=True)
+    embed.add_field(name="Author", value="Scott/itachi/ZERO", inline=True)
+    embed.add_field(name="Friends", value=friend_string, inline=False)
+    embed.add_field(name="Thank you for helping to bring me into reality " + heart + heart + heart , value=BOT_NAME, inline=True)
+
+    await interaction.response.send_message(embed=embed)
 
 async def style_autocompletion(
         interaction:discord.Interaction,
@@ -208,7 +234,15 @@ async def create_pic(interaction:discord.Interaction):
     embed.add_field(name="help", value="Shows this message", inline=False)
     await interaction.followup.send(embed=embed)
 
+#version
 
+@bot.tree.command(name="version",description="Get"+ BOT_NAME +" bot version")
+async def version(interaction:discord.Interaction):
+    embed = discord.Embed(title="My Version Info :D ", color=PRIMARY_EMBED_COLOR)
+    embed.add_field(name="This is my Name :) ", value=BOT_NAME, inline=True)
+    embed.add_field(name="Version", value=VERSION, inline=True)
+    embed.add_field(name="Author", value="Scott/itachi", inline=True)
+    await interaction.response.send_message(embed=embed)
 
 
 
