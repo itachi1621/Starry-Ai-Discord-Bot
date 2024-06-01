@@ -22,10 +22,10 @@ dotenv.load_dotenv();
 TOKEN = os.getenv('DISCORD_BOT_TOKEN');
 STAR_KEY=os.getenv('STARRY_AI_KEY')
 PRIMARY_EMBED_COLOR = int(os.getenv("EMBED_COLOR"),16)
-BOT_NAME=os.getenv('BOT_NAME')
+BOT_NAME=os.getenv('BOTNAME')
 GENERATION_STEPS = os.getenv('GENERATION_STEPS')#im using 40 by default the app uses 50 40 should give good enough results
 MAX_IMAGES = os.getenv('MAX_IMAGES')
-VERSION="1.0.3"
+VERSION="1.0.4"
 
 smile = "\U0001F600"
 frown = "\U0001F641"
