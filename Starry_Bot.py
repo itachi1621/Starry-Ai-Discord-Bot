@@ -48,8 +48,6 @@ art_styles = [
         "3dIllustration",
         "flatIllustration",
         "realvisxl",
-        "stylevisionxl",
-        "animaginexl",
         "anime_2",
         "anime_stylized",
         "anime_vintage",
@@ -59,7 +57,8 @@ art_styles = [
 ]
 
 # not availbel yet..... cyberPunk""anime_3",
-
+# too damn slow and low quality "animaginexl"
+# Kinda not pretty mabee with more steps which more money which is more time .... "stylevisionxl",
 
 #populating array with count values i.e 1,2... based on the max value set in max_images
 image_numbers = []
@@ -159,8 +158,8 @@ async def create_pic(interaction:discord.Interaction,*,prompt:str,style:str,size
                     time.sleep(5)
                     files = []
                     sleeptime = 5
-                    for i in range(6):
-                        sleeptime += 5
+                    for i in range(9):
+                        sleeptime += i+1
                         async with session.get(creation_pickup_link,headers=headers) as response:
                             if response.status == 200:
                                 data = await response.json()
