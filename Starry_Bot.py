@@ -26,22 +26,49 @@ PRIMARY_EMBED_COLOR = int(os.getenv("EMBED_COLOR"),16)
 BOT_NAME=os.getenv('BOTNAME')
 GENERATION_STEPS = os.getenv('GENERATION_STEPS')#im using 40 by default the app uses 50 40 should give good enough results
 MAX_IMAGES = os.getenv('MAX_IMAGES')
-VERSION="1.0.4"
+VERSION="1.0.6"
 
 smile = "\U0001F600"
 frown = "\U0001F641"
 heart = "🩷"
-negative_prompt = """nudity,penis,clit,vagina,tits,dick,phallus,areola,cum,sperm,gore,
-            naked,no clothes,testicles,nsfw,unclothed,butthole,asshole,prolapse,
-            disembowelment,
-            lowres, text, error, cropped, worst quality, low quality,
-            jpeg artifacts, ugly, duplicate, morbid, mutilated,
-            out of frame, extra fingers, mutated hands,
-            poorly drawn hands, poorly drawn face, mutation,
-            deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs,
-            cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs,
-            extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature
+negative_prompt = """nudity, penis, clit, vagina, tits, phallus, areola, cum, sperm, gore,
+ naked, testicles, nsfw, unclothed, butthole, asshole, erotic, porn, hentai, xxx, orgy, bdsm, fetish,
+ masturbation, vibrator, dildo, bukkake, anal, bondage, bestiality, scat, incest, rape, pedophilia, necrophilia, snuff,
+ orgasm, moan, swallow, creampie, ejaculation, kink, masochism, sadism, threesome, gang bang, glory hole, escort,
+ stripper, explicit, obscene, lewd  , lowres, cropped, worst quality, low quality, ugly, morbid, mutilated,out of frame, extra fingers,
+ poorly drawn hands, poorly drawn face, deformed, blurry, bad anatomy, bad proportions, extra limbs,cloned face, disfigured, gross proportions missing arms, missing legs,extra arms, extra legs
             """
+
+banned_words = [
+    "nudity", "penis", "clit", "vagina", "tits", "dick", "phallus", "areola", "cum", "sperm", "gore",
+    "naked", "no clothes", "testicles", "nsfw", "unclothed", "butthole", "asshole", "prolapse",
+    "disembowelment", "erotic", "porn", "pornstar", "hentai", "xxx", "orgy", "bdsm", "fetish",
+    "masturbation", "vibrator", "dildo", "bukkake", "anal", "bondage", "bestiality", "beastiality",
+    "furry", "scat", "watersports", "incest", "rape", "pedophilia", "necrophilia", "snuff",
+    "orgasm", "moan", "swallow", "creampie", "ejaculation", "kink", "swinger", "dominatrix",
+    "masochism", "sadism", "threesome", "gang bang", "sex tape", "camgirl", "camboy",
+    "playboy", "penthouse", "hustler", "playgirl", "fleshlight", "glory hole", "escort",
+    "stripper", "lap dance", "peep show", "dominatrix", "fetish", "adult video", "adult website",
+    "dirty talk", "sexy", "explicit", "obscene", "lewd", "forbidden", "perverted", "degenerate", "erect", "fellatio", "cunnilingus", "analingus", "rimming", "sexting", "erotica", "aphrodisiac",
+    "sexploitation", "sex toy", "intimate", "pheromone", "lingerie", "sexy outfit", "roleplay",
+    "cybersex", "dirty minded", "lecherous", "lascivious", "concupiscent", "libidinous",
+    "licentious", "priapic", "smut", "adult content", "explicit content", "indecent",
+    "topless", "bottomless", "camel toe", "bulge", "upskirt", "downblouse", "nipple slip",
+    "erotic novel", "sex chat", "phone sex", "virtual reality porn", "amateur porn",
+    "fetishism", "exhibitionism", "voyeurism", "peeping tom", "sex scene", "explicit photo",
+    "sex act", "sexual intercourse", "erotic massage", "sensual", "steamy", "arousing",
+    "provocative", "salacious", "titillating", "sizzling", "dirty movies", "kinky",
+    "taboo", "lustful", "sexy talk", "erogenous", "dominatrix", "fellatio", "autofellatio", "orgiastic", "libidinous", "voyeur",
+    "fornicate", "pheromones", "urethral play", "figging", "coprophilia", "queening", "daisy chain",
+    "shrimping", "pansexual", "tit torture", "ball busting", "chastity belt", "cock and ball torture",
+    "dick flick", "felching", "gokkun", "happy ending", "jelly donut", "knob polishing", "pearl necklace",
+    "quickie", "queef", "rusty trombone", "taint", "unicorn", "vibrating panties", "wet dream", "x-rated",
+    "yoni massage", "zinc", "69", "aphrodisiac", "BDSM", "cock ring", "double penetration", "edge-play",
+    "fetishwear", "golden shower", "hedonism", "inflatable dildo", "jilling off", "kinky boots",
+    "macrophilia", "nymphomania", "oedipal", "pegging", "quim", "rubber ball", "sapphic", "teabagging",
+    "undress", "vixen", "watersports", "xerophile", "yiff", "zentai","barebody","fucking","orgasm","foot job","clit ring","faggot","twink","vulva","ballsack","sex"
+]
+
 friends = [
             "rosh007",
             "Persona Slates",
@@ -78,6 +105,7 @@ art_styles = [
         #"anime_vintage",
         "pixelart",
         "luna_3d",
+        #"cyberPunk"
 
 ]
 
@@ -103,6 +131,9 @@ def remove_special_characters(string:str):
     # Join the allowed parts to form the cleaned file name
     cleaned_string = ''.join(allowed_parts)
     return cleaned_string
+def contains_banned_words(prompt: str) -> bool:
+    prompt_lower = prompt.lower()
+    return any(word in prompt_lower for word in banned_words)
 
 @bot.event
 async def on_ready():
@@ -161,6 +192,10 @@ async def create_pic(interaction: discord.Interaction, *, prompt: str, style: st
             title = prompt[:128] + "..."
         else:
             title = prompt
+        if contains_banned_words(prompt):
+            embed = discord.Embed(title="Sorry, I can't make that", description="Your prompt contains inappropriate content.", color=PRIMARY_EMBED_COLOR)
+            await interaction.followup.send(embed=embed)
+            return
 
         image_urls = []
         headers = {
