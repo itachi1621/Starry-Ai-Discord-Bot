@@ -9,6 +9,7 @@ import time
 import re
 import io
 import random
+import asyncio
 
 
 intents = discord.Intents.default()
@@ -30,7 +31,17 @@ VERSION="1.0.4"
 smile = "\U0001F600"
 frown = "\U0001F641"
 heart = "🩷"
-
+negative_prompt = """nudity,penis,clit,vagina,tits,dick,phallus,areola,cum,sperm,gore,
+            naked,no clothes,testicles,nsfw,unclothed,butthole,asshole,prolapse,
+            disembowelment,
+            lowres, text, error, cropped, worst quality, low quality,
+            jpeg artifacts, ugly, duplicate, morbid, mutilated,
+            out of frame, extra fingers, mutated hands,
+            poorly drawn hands, poorly drawn face, mutation,
+            deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs,
+            cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs,
+            extra arms, extra legs, fused fingers, too many fingers, long neck, username, watermark, signature
+            """
 friends = [
             "rosh007",
             "Persona Slates",
@@ -56,15 +67,15 @@ sizes = [
 
 #all; the good styles your welcome
 art_styles = [
-        "hydra",
-        "fantasy",
-        "detailedIllustration",
-        "3dIllustration",
-        "flatIllustration",
+       # "hydra",
+       # "fantasy",
+       # "detailedIllustration",
+       # "3dIllustration",
+       # "flatIllustration",
         "realvisxl",
         "anime_2",
         "anime_stylized",
-        "anime_vintage",
+        #"anime_vintage",
         "pixelart",
         "luna_3d",
 
@@ -141,90 +152,79 @@ async def number_of_images_autocompletion(
 
 
 
-@bot.tree.command(name="create_pic",description="give me a prompt to generate art")
-@app_commands.autocomplete(style=style_autocompletion,size=size_autocompletion,number_of_images = number_of_images_autocompletion)
-async def create_pic(interaction:discord.Interaction,*,prompt:str,style:str,size:str="square",number_of_images:str="1"):
+@bot.tree.command(name="create_pic", description="give me a prompt to generate art")
+@app_commands.autocomplete(style=style_autocompletion, size=size_autocompletion, number_of_images=number_of_images_autocompletion)
+async def create_pic(interaction: discord.Interaction, *, prompt: str, style: str, size: str = "square", number_of_images: str = "1"):
     await interaction.response.defer()
     try:
-
-        if len(prompt) >= 256 :
+        if len(prompt) >= 256:
             title = prompt[:128] + "..."
         else:
             title = prompt
 
-        image_urls  = []
+        image_urls = []
         headers = {
-            'X-API-Key':STAR_KEY,
-            'Content-Type':"application/json"
+            'X-API-Key': STAR_KEY,
+            'Content-Type': "application/json"
         }
         payload = {
-        "model": style,
-        "aspectRatio": size,
-        "highResolution": False,
-        "images": int(number_of_images),
-        "steps": int(GENERATION_STEPS),
-        "prompt": prompt,
-        "initialImageMode": "color"
+            "model": style,
+            "aspectRatio": size,
+            "highResolution": False,
+            "images": int(number_of_images),
+            "steps": int(GENERATION_STEPS),
+            "prompt": prompt,
+            "initialImageMode": "color",
+            "negativePrompt":negative_prompt
         }
 
         link = "https://api.starryai.com/creations/"
         async with aiohttp.ClientSession() as session:
-            async with session.post(link,json=payload,headers=headers) as response:
-                if response.status == 200 :
-                    #now we need to extract the id
-                    #print("here2")
+            async with session.post(link, json=payload, headers=headers) as response:
+                if response.status == 200:
                     data = await response.json()
-                    #print(data)
                     job_id = data['id']
-                    #print(job_id);
-                    #now we need to get the images
-                    creation_pickup_link= f"https://api.starryai.com/creations/{job_id}"
-                    #we need to send the request now but before we do lets wait 5 seconds  then once we send it and recieve a 200 status we need to check
-                    #if the the status in the payload is completed if its not we need to wait 4 more seconds and retry again up to 2 times
-                    time.sleep(5)
+                    creation_pickup_link = f"https://api.starryai.com/creations/{job_id}"
+
+                    await asyncio.sleep(5)
+
                     files = []
                     sleeptime = 5
-                    for i in range(9):
-                        sleeptime += i+1
-                        async with session.get(creation_pickup_link,headers=headers) as response:
+                    for i in range(10):
+                        sleeptime += i + 1
+                        async with session.get(creation_pickup_link, headers=headers) as response:
                             if response.status == 200:
                                 data = await response.json()
                                 if data['status'] == "completed":
                                     image_urls = data['images']
-                                    #print(image_urls)
-
                                     break
                                 else:
-                                    time.sleep(sleeptime)
+                                    await asyncio.sleep(sleeptime)
                             else:
                                 break
+
                     for url in image_urls:
                         image_url = url['url']
                         async with session.get(image_url) as resp:
                             if resp.status != 200:
                                 return await interaction.followup.send('Could not get image...')
                             data = io.BytesIO(await resp.read())
-                            title = remove_special_characters(title) #Magic Stuff happens here
-                            #random file name with unix the timestamp this is to prevent the same file name being used by multiple users
-                            #random id
-                            random_numb = random.randrange(1000,4000)
-                            file_name = str(int(time.time()))+str(random_numb)+"_"+ title + ".png"
-                            files.append(discord.File(data, filename=file_name)) # Description is or the ALT text for the image to see it it needs to be  enabled on the account
-                    embed = discord.Embed(title="Here is your image of : " + title , color=PRIMARY_EMBED_COLOR)
-                    await interaction.followup.send(embed=embed,files=files)
+                            title = remove_special_characters(title)
+                            random_numb = random.randrange(1000, 4000)
+                            file_name = str(int(time.time())) + str(random_numb) + "_" + title + ".png"
+                            files.append(discord.File(data, filename=file_name))
 
-
+                    embed = discord.Embed(title="Here is your image of: " + title, color=PRIMARY_EMBED_COLOR)
+                    await interaction.followup.send(embed=embed, files=files)
                 else:
                     embed = discord.Embed(title="There was an error generating the image", color=PRIMARY_EMBED_COLOR)
-                    print(response)
-                    await interaction.followup.send("Could not get image");
+                    await interaction.followup.send("Could not get image")
                     return
     except Exception as e:
         embed = discord.Embed(title="There was an error generating the image", color=PRIMARY_EMBED_COLOR)
         print(e)
-        await interaction.followup.send("Could not get image try again later")
+        await interaction.followup.send("Could not get image, try again later")
         return
-
 #help
 @bot.tree.command(name="help",description="commands etc")
 async def create_pic(interaction:discord.Interaction):
